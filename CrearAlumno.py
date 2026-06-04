@@ -1,13 +1,23 @@
 import boto3
+import json
 
 def lambda_handler(event, context):
-    # Entrada (json)
     print(event)
-    tenant_id  = event['body']['tenant_id']
-    alumno_id  = event['body']['alumno_id']
-    alumno_datos = event['body']['alumno_datos']  # dict con fecha_nac, celular, domicilio, etc.
+    
+    # Si body llega como string, parsearlo
+    body = event['body'] if isinstance(event['body'], dict) else json.loads(event['body'])
 
-    # Proceso
+    tenant_id = body['tenant_id']
+    alumno_id = body['alumno_id']
+
+    alumno_datos = {
+        'nombre':    body['nombre'],
+        'fecha_nac': body['fecha_nac'],
+        'celular':   body['celular'],
+        'sexo':      body['sexo'],
+        'domicilio': body['domicilio']
+    }
+
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('t_alumnos')
 
@@ -19,7 +29,6 @@ def lambda_handler(event, context):
         }
     )
 
-    # Salida (json)
     return {
         'statusCode': 201,
         'mensaje':   'Alumno creado exitosamente',
